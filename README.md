@@ -50,6 +50,32 @@ stash/
 - **Backend**: Supabase (PostgreSQL + REST API)
 - **Hosting**: Any static host (Vercel, Netlify, GitHub Pages)
 
+## Security Notes
+
+Stash is designed for personal, self-hosted use. Keep these things in mind:
+
+### Never commit real credentials to a public repository
+
+`extension/config.js` and `web/config.js` contain your Supabase URL, anon key, and user ID. These files are tracked by git with placeholder values — once you fill in your real credentials, **do not push them to a public repo**. Anyone with your anon key and project URL can read and write your data.
+
+To protect yourself, add your filled-in config files to `.gitignore` before committing:
+
+```
+# Add to .gitignore after filling in real credentials
+extension/config.js
+web/config.js
+```
+
+### Keep the app private
+
+The web app runs in single-user mode using a hardcoded user ID — there is no login screen protecting it. Whoever can reach the URL can see your data. Deploy to a private URL, or put it behind a VPN, Tailscale, or password-protected hosting (e.g. Vercel password protection).
+
+### Supabase project settings
+
+- Keep your Supabase project's **anon key** out of public repos (see above).
+- Your Supabase project is protected by Row Level Security (RLS) policies from `schema.sql` — do not disable these.
+- If you use the TTS feature, audio files are stored in a Supabase storage bucket. By default this bucket may be public; check your Supabase dashboard under Storage and set it to private if you want audio files to be non-discoverable.
+
 ## Screenshots
 
 *Coming soon*

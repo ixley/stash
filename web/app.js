@@ -701,7 +701,7 @@ class StashApp {
 
     document.getElementById('reading-title').textContent = save.title || 'Untitled';
     document.getElementById('reading-meta').innerHTML = `
-      ${save.site_name || ''} ${save.author ? `· ${save.author}` : ''} · ${new Date(save.created_at).toLocaleDateString()}
+      ${this.escapeHtml(save.site_name || '')} ${save.author ? `· ${this.escapeHtml(save.author)}` : ''} · ${new Date(save.created_at).toLocaleDateString()}
     `;
 
     // Handle audio player visibility
@@ -728,14 +728,14 @@ class StashApp {
         <blockquote style="font-style: italic; background: #fef3c7; padding: 20px; border-radius: 8px; margin-bottom: 20px;">
           "${this.escapeHtml(save.highlight)}"
         </blockquote>
-        <p><a href="${save.url}" target="_blank" style="color: var(--primary);">View original →</a></p>
+        <p><a href="${this.safeUrl(save.url)}" target="_blank" style="color: var(--primary);">View original →</a></p>
       `;
     } else {
       const content = save.content || save.excerpt || 'No content available.';
       document.getElementById('reading-body').innerHTML = this.renderMarkdown(content);
     }
 
-    document.getElementById('open-original-btn').href = save.url || '#';
+    document.getElementById('open-original-btn').href = this.safeUrl(save.url);
 
     // Update button states
     document.getElementById('archive-btn').classList.toggle('active', save.is_archived);
@@ -1422,6 +1422,15 @@ class StashApp {
     const div = document.createElement('div');
     div.textContent = text;
     return div.innerHTML;
+  }
+
+  safeUrl(url) {
+    if (!url) return '#';
+    try {
+      const parsed = new URL(url);
+      if (parsed.protocol === 'http:' || parsed.protocol === 'https:') return url;
+    } catch (e) {}
+    return '#';
   }
 
   renderMarkdown(text) {
