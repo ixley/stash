@@ -2,7 +2,7 @@
 class StashApp {
   constructor() {
     this.supabase = null;
-    this.user = { id: CONFIG.USER_ID }; // Hardcoded single user
+    this.user = null;
     this.currentView = 'all';
     this.currentSave = null;
     this.saves = [];
@@ -27,11 +27,38 @@ class StashApp {
     // Load theme preference
     this.loadTheme();
 
-    // Skip auth - go straight to main screen
-    this.showMainScreen();
-    this.loadData();
-
     this.bindEvents();
+
+    this.supabase.auth.onAuthStateChange((event, session) => {
+      if (session?.user) {
+        this.user = session.user;
+        this.showMainScreen();
+        this.loadData();
+      } else if (event === 'INITIAL_SESSION') {
+        this.autoSignIn();
+      } else {
+        this.user = null;
+        this.showAuthScreen();
+      }
+    });
+  }
+
+  async autoSignIn() {
+    if (!CONFIG.EMAIL || !CONFIG.PASSWORD ||
+        CONFIG.EMAIL === 'YOUR_EMAIL' || CONFIG.PASSWORD === 'YOUR_PASSWORD') {
+      this.showAuthScreen();
+      return;
+    }
+
+    const { data, error } = await this.supabase.auth.signInWithPassword({
+      email: CONFIG.EMAIL,
+      password: CONFIG.PASSWORD,
+    });
+
+    if (error || !data.session) {
+      this.showAuthScreen();
+    }
+    // On success, onAuthStateChange fires SIGNED_IN and handles the rest
   }
 
   // Theme Management
@@ -709,16 +736,10 @@ class StashApp {
     const audioGenerating = document.getElementById('audio-generating');
 
     if (save.audio_url) {
-      // Audio is ready - show player
       audioPlayer.classList.remove('hidden');
       audioGenerating.classList.add('hidden');
       this.initAudio(save.audio_url);
-    } else if (save.content && save.content.length > 100 && !save.highlight) {
-      // Content exists but no audio yet - show generating indicator
-      audioPlayer.classList.add('hidden');
-      audioGenerating.classList.remove('hidden');
     } else {
-      // No audio applicable (highlights, short content)
       audioPlayer.classList.add('hidden');
       audioGenerating.classList.add('hidden');
     }

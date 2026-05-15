@@ -129,6 +129,7 @@ async function savePage(tab) {
       message: 'Failed to save: ' + err.message,
       isError: true,
     });
+    throw err;
   }
 }
 
@@ -137,8 +138,12 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
   if (request.action === 'savePage') {
     chrome.tabs.query({ active: true, currentWindow: true }, async (tabs) => {
       if (tabs[0]) {
-        await savePage(tabs[0]);
-        sendResponse({ success: true });
+        try {
+          await savePage(tabs[0]);
+          sendResponse({ success: true });
+        } catch (err) {
+          sendResponse({ success: false, error: err.message });
+        }
       }
     });
     return true;

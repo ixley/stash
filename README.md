@@ -32,6 +32,40 @@ A simple, self-hosted read-it-later app. Save articles, highlights, and Kindle n
 
 See [SETUP.md](SETUP.md) for detailed instructions.
 
+## Deploying the Web App
+
+### Vercel (recommended)
+
+1. Push this repo to GitHub (make sure `web/config.js` is in `.gitignore` first — it contains credentials)
+2. Go to [vercel.com](https://vercel.com), create a new project, and import your repo
+3. Set the **Root Directory** to `web`
+4. Click **Deploy** — no build step needed, it's plain HTML/JS
+
+Your app will be live at `https://your-project.vercel.app`.
+
+> **Keep it private**: go to Project Settings → Password Protection and enable it so only you can access the URL.
+
+### Deploying Supabase Edge Functions
+
+The bookmarklet and extension use a Supabase Edge Function to save pages. Deploy it once after initial setup:
+
+```bash
+npm install -g supabase
+supabase login
+supabase link --project-ref YOUR_PROJECT_ID
+supabase functions deploy save-page
+```
+
+Your project ID is the subdomain in your Supabase URL (e.g. `ibtatmwbvdgzbavtdxrj` from `https://ibtatmwbvdgzbavtdxrj.supabase.co`).
+
+### Local development
+
+```bash
+cd web
+python3 -m http.server 3000
+# Open http://localhost:3000
+```
+
 ## Project Structure
 
 ```

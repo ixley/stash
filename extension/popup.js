@@ -11,9 +11,13 @@ document.addEventListener('DOMContentLoaded', async () => {
   const savesList = document.getElementById('saves-list');
   const openAppLink = document.getElementById('open-app-link');
 
-  // Single-user mode - skip auth, go straight to main view
-  showMainView();
-  loadRecentSaves();
+  const userResponse = await chrome.runtime.sendMessage({ action: 'getUser' });
+  if (userResponse.user) {
+    showMainView();
+    loadRecentSaves();
+  } else {
+    showAuthView();
+  }
 
   function showAuthView() {
     authView.classList.remove('hidden');
@@ -91,27 +95,48 @@ document.addEventListener('DOMContentLoaded', async () => {
       Saving...
     `;
 
-    await chrome.runtime.sendMessage({ action: 'savePage' });
+    const result = await chrome.runtime.sendMessage({ action: 'savePage' });
 
     savePageBtn.disabled = false;
-    savePageBtn.innerHTML = `
-      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-        <polyline points="20 6 9 17 4 12"></polyline>
-      </svg>
-      Saved!
-    `;
 
-    setTimeout(() => {
+    if (result && result.success === false) {
       savePageBtn.innerHTML = `
         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-          <path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"></path>
-          <polyline points="17 21 17 13 7 13 7 21"></polyline>
-          <polyline points="7 3 7 8 15 8"></polyline>
+          <circle cx="12" cy="12" r="10"></circle>
+          <line x1="12" y1="8" x2="12" y2="12"></line>
+          <line x1="12" y1="16" x2="12.01" y2="16"></line>
         </svg>
-        Save This Page
+        Failed to save
       `;
-      loadRecentSaves();
-    }, 1500);
+      setTimeout(() => {
+        savePageBtn.innerHTML = `
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"></path>
+            <polyline points="17 21 17 13 7 13 7 21"></polyline>
+            <polyline points="7 3 7 8 15 8"></polyline>
+          </svg>
+          Save This Page
+        `;
+      }, 2500);
+    } else {
+      savePageBtn.innerHTML = `
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <polyline points="20 6 9 17 4 12"></polyline>
+        </svg>
+        Saved!
+      `;
+      setTimeout(() => {
+        savePageBtn.innerHTML = `
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"></path>
+            <polyline points="17 21 17 13 7 13 7 21"></polyline>
+            <polyline points="7 3 7 8 15 8"></polyline>
+          </svg>
+          Save This Page
+        `;
+        loadRecentSaves();
+      }, 1500);
+    }
   });
 
   // Load recent saves

@@ -15,8 +15,9 @@ npm-debug.log
 # Logs
 *.log
 
-# Local config with real credentials
-config.local.js
+# Config files with real credentials — fill these in locally, never commit
+web/config.js
+extension/config.js
 
 # Vercel
 .vercel/
@@ -24,3 +25,5 @@ config.local.js
 # Build artifacts
 *.zip
 supabase/.temp/
+.vercel
+.env*.local
